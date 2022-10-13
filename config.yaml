@@ -1,0 +1,6 @@
+version: v0.0.1
+
+service:
+  type: tcp
+  # port: 3000
+  # secure:
