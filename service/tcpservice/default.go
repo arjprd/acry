@@ -2,67 +2,101 @@ package tcpservice
 
 import (
 	"encoding/json"
-	"net"
+	"errors"
+	"strings"
 
-	"github.com/arjprd/crypt-service/driver"
+	"github.com/arjprd/crypt-service/algo"
 )
 
-type Operations struct {
-	c         *driver.Config
-	opHandler map[string]OperationHandler
-}
-
-type Request struct {
-	algorithm  string          `json:"algo"`
-	operation  string          `json:"op"`
-	password   string          `json:"pass"`
-	hash       string          `json:"hash"`
-	parameters json.RawMessage `json:"param"`
-}
-
-type Response struct {
-	c          net.Conn `json:"-"`
-	hash       string   `json:"hash"`
-	verfied    bool     `json:"verified"`
-	isError    bool     `json:"error"`
-	errMessage string   `json:"message"`
-}
-
-type OperationHandler func(Request, Response)
-
-func NewOperations(c *driver.Config) *Operations {
-	return &Operations{
-		c:         c,
-		opHandler: make(map[string]OperationHandler),
-	}
-}
-
-func (o *Operations) RegisterOperation(operation string, handler OperationHandler) {
-	o.opHandler[operation] = handler
-}
-
-func (o *Operations) handle(req Request, res Response) {
-	if handler, ok := o.opHandler[req.algorithm]; ok {
-		handler(req, res)
-		return
-	}
-	o.DefaultHandler(req, res)
-}
-
-func (h *TCPService) handleRequest(c net.Conn, requestData []byte) {
-	var request Request
-	err := json.Unmarshal(requestData, request)
-	if err != nil {
-		h.c.Logger().Error("json convertion failed %+v", err)
-		return
-	}
-	response := Response{
-		c: c,
-	}
-
-	h.o.handle(request, response)
-}
-
 func (o *Operations) DefaultHandler(req Request, res Response) {
+	err := res.Send()
+	if err != nil {
+		o.c.Logger().Error("unknown operation")
+	}
+}
 
+func (h *TCPService) findAlgo(r Request) (algo.HashAlgorithm, error) {
+	switch strings.ToLower(r.algorithm) {
+	case algo.ALGO_NAME_BCRYPT:
+		cost := algo.DEFAULT_BCRYPT_COST
+		var param struct {
+			Cost int `json:"cost"`
+		}
+		var byteData []byte
+		r.parameters.UnmarshalJSON(byteData)
+		json.Unmarshal(byteData, param)
+		cost = param.Cost
+		return algo.NewBcryptHash(cost, h.c), nil
+	case algo.ALGO_NAME_PBKDF2:
+		iter := algo.DEFAULT_PBKDF2_ITER
+		keylen := algo.DEFAULT_PBKDF2_KEYLEN
+		hashFunc := algo.DEFAULT_PBKDF2_HASH_FUNC
+
+		var param struct {
+			Iter     int    `json:"iter"`
+			Keylen   int    `json:"klen"`
+			HashFunc string `json:"hf"`
+			Salt     string `json:"salt"`
+		}
+		var byteData []byte
+		r.parameters.UnmarshalJSON(byteData)
+		json.Unmarshal(byteData, param)
+
+		salt := param.Salt
+		iter = param.Iter
+		keylen = param.Keylen
+		hashFunc = param.HashFunc
+
+		return algo.NewPbkdf2Hash(iter, salt, keylen, hashFunc, h.c), nil
+	case algo.ALGO_NAME_ARGON2I:
+		time := algo.DEFAULT_ARGON2I_TIME
+		keylen := algo.DEFAULT_ARGON2I_KEYLEN
+		memory := algo.DEFAULT_ARGON2I_MEMORY
+		threads := algo.DEFAULT_ARGON2I_THREADS
+
+		var param struct {
+			Time    int    `json:"time"`
+			Keylen  int    `json:"klen"`
+			Memory  int    `json:"mem"`
+			Threads int    `json:"th"`
+			Salt    string `json:"salt"`
+		}
+		var byteData []byte
+		r.parameters.UnmarshalJSON(byteData)
+		json.Unmarshal(byteData, param)
+
+		salt := param.Salt
+		time = param.Time
+		keylen = param.Keylen
+		memory = param.Memory
+		threads = param.Threads
+
+		return algo.NewArgon2iHash(salt, uint(time), uint32(memory), uint8(threads), uint32(keylen), h.c), nil
+	case algo.ALGO_NAME_ARGON2ID:
+		time := algo.DEFAULT_ARGON2I_TIME
+		keylen := algo.DEFAULT_ARGON2I_KEYLEN
+		memory := algo.DEFAULT_ARGON2I_MEMORY
+		threads := algo.DEFAULT_ARGON2I_THREADS
+
+		var param struct {
+			Time    int    `json:"time"`
+			Keylen  int    `json:"klen"`
+			Memory  int    `json:"mem"`
+			Threads int    `json:"th"`
+			Salt    string `json:"salt"`
+		}
+		var byteData []byte
+		r.parameters.UnmarshalJSON(byteData)
+		json.Unmarshal(byteData, param)
+
+		salt := param.Salt
+		time = param.Time
+		keylen = param.Keylen
+		memory = param.Memory
+		threads = param.Threads
+		return algo.NewArgon2idHash(salt, uint(time), uint32(memory), uint8(threads), uint32(keylen), h.c), nil
+	}
+
+	h.c.Logger().Error("invalid algorithm: %s", r.algorithm)
+	return nil, errors.New("invalid algorithm")
 }
