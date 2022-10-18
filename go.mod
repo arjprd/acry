@@ -1,4 +1,4 @@
-module github.com/arjprd/crypt-service
+module github.com/arjprd/acry
 
 go 1.18
 

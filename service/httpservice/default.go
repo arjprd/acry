@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/arjprd/crypt-service/algo"
+	"github.com/arjprd/acry/algo"
 )
 
 const (

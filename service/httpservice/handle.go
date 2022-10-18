@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/arjprd/crypt-service/driver"
+	"github.com/arjprd/acry/driver"
 )
 
 type HttpService struct {

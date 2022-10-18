@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"hash"
 
-	"github.com/arjprd/crypt-service/driver"
+	"github.com/arjprd/acry/driver"
 	"golang.org/x/crypto/pbkdf2"
 )
 

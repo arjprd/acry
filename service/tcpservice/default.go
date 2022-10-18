@@ -5,7 +5,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/arjprd/crypt-service/algo"
+	"github.com/arjprd/acry/algo"
 )
 
 func (o *Operations) DefaultHandler(req Request, res Response) {

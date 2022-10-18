@@ -5,7 +5,7 @@ import (
 	"net"
 	"strconv"
 
-	"github.com/arjprd/crypt-service/driver"
+	"github.com/arjprd/acry/driver"
 )
 
 type TCPService struct {

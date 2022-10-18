@@ -7,8 +7,8 @@ package cmd
 import (
 	"log"
 
-	"github.com/arjprd/crypt-service/driver"
-	"github.com/arjprd/crypt-service/service"
+	"github.com/arjprd/acry/driver"
+	"github.com/arjprd/acry/service"
 	"github.com/spf13/cobra"
 )
 

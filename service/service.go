@@ -3,9 +3,9 @@ package service
 import (
 	"errors"
 
-	"github.com/arjprd/crypt-service/driver"
-	"github.com/arjprd/crypt-service/service/httpservice"
-	"github.com/arjprd/crypt-service/service/tcpservice"
+	"github.com/arjprd/acry/driver"
+	"github.com/arjprd/acry/service/httpservice"
+	"github.com/arjprd/acry/service/tcpservice"
 )
 
 func NewService(c *driver.Config) (driver.ServiceHandler, error) {
