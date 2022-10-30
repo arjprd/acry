@@ -1,0 +1,11 @@
+version: v0.0.1
+
+service:
+  type: http
+  # port: 3000
+  # secure:
+
+log:
+  error: true
+  info: true
+  warning: true
