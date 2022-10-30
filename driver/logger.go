@@ -16,13 +16,13 @@ type Logger struct {
 func NewLogger() *Logger {
 	logger := &Logger{}
 	if viper.GetBool(VIPER_KEY_SERVICE_INFO_LOG) {
-		logger.infoLogger = log.New(os.Stdout, "INFO ", log.Ldate|log.Ltime|log.Lmicroseconds|log.Llongfile)
+		logger.infoLogger = log.New(os.Stdout, "INFO ", log.Ldate|log.Ltime|log.Lmicroseconds)
 	}
 	if viper.GetBool(VIPER_KEY_SERVICE_ERROR_LOG) {
-		logger.errorLogger = log.New(os.Stdout, "ERROR ", log.Ldate|log.Ltime|log.Lmicroseconds|log.Llongfile)
+		logger.errorLogger = log.New(os.Stdout, "ERROR ", log.Ldate|log.Ltime|log.Lmicroseconds)
 	}
 	if viper.GetBool(VIPER_KEY_SERVICE_WARNING_LOG) {
-		logger.warningLogger = log.New(os.Stdout, "WARNING ", log.Ldate|log.Ltime|log.Lmicroseconds|log.Llongfile)
+		logger.warningLogger = log.New(os.Stdout, "WARNING ", log.Ldate|log.Ltime|log.Lmicroseconds)
 	}
 	return logger
 }

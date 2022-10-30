@@ -4,3 +4,7 @@ service:
   type: tcp
   # port: 3000
   # secure:
+log:
+  info: true
+  error: true
+  warning: true

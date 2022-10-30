@@ -9,19 +9,19 @@ import (
 )
 
 type Request struct {
-	algorithm  string          `json:"algo"`
-	operation  string          `json:"op"`
-	password   string          `json:"pass"`
-	hash       string          `json:"hash"`
-	parameters json.RawMessage `json:"param"`
+	Algorithm  string          `json:"algo"`
+	Operation  string          `json:"op"`
+	Password   string          `json:"pass"`
+	Hash       string          `json:"hash"`
+	Parameters json.RawMessage `json:"param"`
 }
 
 type Response struct {
 	c          net.Conn `json:"-"`
-	hash       string   `json:"hash"`
-	verfied    bool     `json:"verified"`
-	isError    bool     `json:"error"`
-	errMessage string   `json:"message"`
+	Hash       string   `json:"hash"`
+	Verfied    bool     `json:"verified"`
+	IsError    bool     `json:"error"`
+	ErrMessage string   `json:"message"`
 }
 
 type Operations struct {
@@ -29,18 +29,18 @@ type Operations struct {
 	opHandler map[string]OperationHandler
 }
 
-type OperationHandler func(Request, Response)
+type OperationHandler func(*Request, *Response)
 
 func (h *TCPService) handleRequest(c net.Conn, requestData []byte) {
-	var request Request
+	request := &Request{}
 	err := json.Unmarshal(requestData, request)
 	if err != nil {
-		h.c.Logger().Error("json convertion failed %+v", err)
+		h.c.Logger().Error("handleRequest:json convertion failed %+v", err)
 		return
 	}
-	response := Response{
+	response := &Response{
 		c:       c,
-		isError: false,
+		IsError: false,
 	}
 
 	h.o.handle(request, response)
@@ -57,8 +57,8 @@ func (o *Operations) RegisterOperation(operation string, handler OperationHandle
 	o.opHandler[operation] = handler
 }
 
-func (o *Operations) handle(req Request, res Response) {
-	if handler, ok := o.opHandler[req.algorithm]; ok {
+func (o *Operations) handle(req *Request, res *Response) {
+	if handler, ok := o.opHandler[req.Operation]; ok {
 		handler(req, res)
 		return
 	}
@@ -68,7 +68,7 @@ func (o *Operations) handle(req Request, res Response) {
 func (s *Response) Send() error {
 	data, err := json.Marshal(s)
 	if err != nil {
-		return errors.New("json marshall failed")
+		return errors.New("send:json marshall failed")
 	}
 	data = append(data, '\r')
 	s.c.Write(data)
@@ -76,16 +76,16 @@ func (s *Response) Send() error {
 }
 
 func (s *Response) SetError(err string) {
-	s.errMessage = err
-	s.isError = true
+	s.ErrMessage = err
+	s.IsError = true
 }
 
 func (s *Response) SetHash(hash string) {
-	s.hash = hash
-	s.isError = false
+	s.Hash = hash
+	s.IsError = false
 }
 
 func (s *Response) SetVerified(verified bool) {
-	s.verfied = verified
-	s.isError = false
+	s.Verfied = verified
+	s.IsError = false
 }

@@ -29,13 +29,15 @@ func (h *TCPService) Start() {
 	host := ":" + strconv.Itoa(port)
 	listener, err := net.Listen("tcp", host)
 	if err != nil {
-		h.c.Logger().Error("unable to start tcp server %+v", err)
+		h.c.Logger().Error("start:unable to start tcp server %+v", err)
+	} else {
+		h.c.Logger().Info("start:tcp service up on %+v", host)
 	}
 
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			h.c.Logger().Error("something went wrong %+v", err)
+			h.c.Logger().Error("start:something went wrong %+v", err)
 		}
 		go h.handler(conn)
 	}
@@ -46,8 +48,8 @@ func (h *TCPService) handler(c net.Conn) {
 	for {
 		data, err := reader.ReadBytes('\r')
 		if err != nil {
-			h.c.Logger().Error("error on reading data from connection %+v", err)
-			continue
+			h.c.Logger().Error("handler:error on reading data from connection %+v", err)
+			break
 		}
 		h.handleRequest(c, data)
 	}

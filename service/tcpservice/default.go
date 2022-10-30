@@ -8,23 +8,25 @@ import (
 	"github.com/arjprd/crypt-service/algo"
 )
 
-func (o *Operations) DefaultHandler(req Request, res Response) {
+func (o *Operations) DefaultHandler(req *Request, res *Response) {
 	err := res.Send()
 	if err != nil {
-		o.c.Logger().Error("unknown operation")
+		o.c.Logger().Error("defaultHandler:unknown operation")
 	}
 }
 
-func (h *TCPService) findAlgo(r Request) (algo.HashAlgorithm, error) {
-	switch strings.ToLower(r.algorithm) {
+func (h *TCPService) findAlgo(r *Request) (algo.HashAlgorithm, error) {
+	switch strings.ToLower(r.Algorithm) {
 	case algo.ALGO_NAME_BCRYPT:
 		cost := algo.DEFAULT_BCRYPT_COST
 		var param struct {
 			Cost int `json:"cost"`
 		}
-		var byteData []byte
-		r.parameters.UnmarshalJSON(byteData)
-		json.Unmarshal(byteData, param)
+		byteData, err := r.Parameters.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		json.Unmarshal(byteData, &param)
 		cost = param.Cost
 		return algo.NewBcryptHash(cost, h.c), nil
 	case algo.ALGO_NAME_PBKDF2:
@@ -39,8 +41,8 @@ func (h *TCPService) findAlgo(r Request) (algo.HashAlgorithm, error) {
 			Salt     string `json:"salt"`
 		}
 		var byteData []byte
-		r.parameters.UnmarshalJSON(byteData)
-		json.Unmarshal(byteData, param)
+		r.Parameters.UnmarshalJSON(byteData)
+		json.Unmarshal(byteData, &param)
 
 		salt := param.Salt
 		iter = param.Iter
@@ -62,8 +64,8 @@ func (h *TCPService) findAlgo(r Request) (algo.HashAlgorithm, error) {
 			Salt    string `json:"salt"`
 		}
 		var byteData []byte
-		r.parameters.UnmarshalJSON(byteData)
-		json.Unmarshal(byteData, param)
+		r.Parameters.UnmarshalJSON(byteData)
+		json.Unmarshal(byteData, &param)
 
 		salt := param.Salt
 		time = param.Time
@@ -86,8 +88,8 @@ func (h *TCPService) findAlgo(r Request) (algo.HashAlgorithm, error) {
 			Salt    string `json:"salt"`
 		}
 		var byteData []byte
-		r.parameters.UnmarshalJSON(byteData)
-		json.Unmarshal(byteData, param)
+		r.Parameters.UnmarshalJSON(byteData)
+		json.Unmarshal(byteData, &param)
 
 		salt := param.Salt
 		time = param.Time
@@ -97,6 +99,6 @@ func (h *TCPService) findAlgo(r Request) (algo.HashAlgorithm, error) {
 		return algo.NewArgon2idHash(salt, uint(time), uint32(memory), uint8(threads), uint32(keylen), h.c), nil
 	}
 
-	h.c.Logger().Error("invalid algorithm: %s", r.algorithm)
+	h.c.Logger().Error("findAlgo:invalid algorithm: %s", r.Algorithm)
 	return nil, errors.New("invalid algorithm")
 }
